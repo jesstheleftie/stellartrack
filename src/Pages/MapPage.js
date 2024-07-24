@@ -1,4 +1,5 @@
 import Map, { useControl } from "react-map-gl";
+import ControlPanel from "./ControlPanel/ControlPanel";
 import mapboxgl from "mapbox-gl";
 // mapboxgl.workerClass =
 //   require("worker-loader!mapbox-gl/dist/mapbox-gl-csp-worker").default;
@@ -63,19 +64,57 @@ const MapPage = () => {
     ISS: {
       url: "https://celestrak.org/NORAD/elements/gp.php?CATNR=25544&FORMAT=TLE",
       size: 5,
-      title: "International Space Station",
+      title: "ISS",
     },
-    galileo:
-      "https://celestrak.org/NORAD/elements/gp.php?GROUP=galileo&FORMAT=tle",
-    hubble: "https://celestrak.org/NORAD/elements/gp.php?INTDES=1990-037",
+    galileo: {
+      url: "https://celestrak.org/NORAD/elements/gp.php?GROUP=galileo&FORMAT=tle",
+      size: 5,
+      title: "Galileo",
+    },
+    hubble: {
+      url: "https://celestrak.org/NORAD/elements/gp.php?INTDES=1990-037",
+      size: 5,
+      title: "Hubble",
+    },
+    beidou: {
+      url: "https://celestrak.org/NORAD/elements/gp.php?GROUP=beidou&FORMAT=tle",
+      size: 5,
+      title: "Beidou",
+    },
+    iridium: {
+      url: "https://celestrak.org/NORAD/elements/gp.php?GROUP=iridium&FORMAT=tle",
+      size: 5,
+      title: "Iridium",
+    },
+    last30DayLaunch: {
+      url: "https://celestrak.org/NORAD/elements/gp.php?GROUP=last-30-days&FORMAT=tle",
+      size: 3,
+      title: "Last 30 Day Launch",
+    },
+    oneHundredBrightest: {
+      url: "https://celestrak.org/NORAD/elements/gp.php?GROUP=visual&FORMAT=tle",
+      size: 3,
+      title: "100 Brightest",
+    },
+    spire: {
+      url: "https://celestrak.org/NORAD/elements/gp.php?GROUP=spire&FORMAT=tle",
+      size: 5,
+      title: "Spire",
+    },
   };
+  const [isPopupVisible, setPopupVisible] = useState(false);
+  const [selectedGroup, setSelectedGroup] = useState(Object.keys(urls)[0]);
 
-  const [selectedGroup, setSelectedGroup] = useState("ISS");
+  const togglePopup = () => {
+    setPopupVisible(!isPopupVisible);
+  };
   //API Part
   const [satelliteData, setSatelliteData] = useState([]);
 
   useEffect(() => {
     const fetchSatelliteData = async () => {
+      if (!selectedGroup) return;
+
       try {
         const response = await fetch(urls[`${selectedGroup}`].url);
         const textData = await response.text();
@@ -87,7 +126,7 @@ const MapPage = () => {
     };
 
     fetchSatelliteData();
-  }, []);
+  }, [selectedGroup]);
 
   const parseTLEData = (data) => {
     const lines = data.trim().split("\n");
@@ -126,7 +165,7 @@ const MapPage = () => {
     );
     return {
       position: [longitude, latitude, altitude],
-      size: urls[`${selectedGroup}`].size,
+      size: urls[`${selectedGroup}`].size || 1,
       color: [255, 140, 0],
       elevation: 1000,
     };
@@ -138,26 +177,37 @@ const MapPage = () => {
     pickable: true,
     getPosition: (d) => d.position,
     getRadius: (d) => d.size,
-    pointSize: urls[`${selectedGroup}`].size,
+    pointSize: urls[`${selectedGroup}`].size || 1,
     getColor: (d) => d.color,
     getElevation: (d) => d.elevation,
     elevationScale: 1,
   });
   return (
-    <DeckGL
-      style={{ height: "100vh", width: "100vw", position: "fixed" }}
-      initialViewState={INITIAL_VIEW_STATE}
-      controller={true}
-      layers={[pointCloudLayer]}
-      onViewStateChange={(data) =>
-        console.log(getAltitude(data.viewState.zoom))
-      }
-    >
-      <Map
-        mapboxAccessToken={process.env.REACT_APP_MAPBOX_API}
-        mapStyle={"mapbox://styles/mapbox/dark-v11"}
+    <div>
+      <ControlPanel
+        urls={urls}
+        selectedGroup={selectedGroup}
+        setSelectedGroup={setSelectedGroup}
+        satelliteData={satelliteData}
+        isPopupVisible={isPopupVisible}
+        togglePopup={togglePopup}
       />
-    </DeckGL>
+
+      <DeckGL
+        style={{ height: "100vh", width: "100vw", position: "fixed" }}
+        initialViewState={INITIAL_VIEW_STATE}
+        controller={true}
+        layers={[pointCloudLayer]}
+        onViewStateChange={(data) =>
+          console.log(getAltitude(data.viewState.zoom))
+        }
+      >
+        <Map
+          mapboxAccessToken={process.env.REACT_APP_MAPBOX_API}
+          mapStyle={"mapbox://styles/mapbox/dark-v11"}
+        />
+      </DeckGL>
+    </div>
   );
 };
 
