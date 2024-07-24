@@ -129,6 +129,6 @@
     color: rgb(7, 7, 7);
 }
 
-.controlSelected {
-    color: rgb(200,200,200);
-  }
+.ControlPanel ul li.controlSelected {
+  color: rgb(238, 195, 52); /* Change 'blue' to your desired clicked color */
+}

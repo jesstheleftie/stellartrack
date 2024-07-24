@@ -70,7 +70,6 @@ const ControlPanel = ({
               <li
                 key={index}
                 onClick={() => setSelectedGroup(group)}
-                // style={{ color: `${selectedGroup === group ? "red" : ""}` }}
                 className={selectedGroup === group ? "controlSelected" : ""}
               >
                 {urls[group].title}
