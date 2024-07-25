@@ -1,5 +1,7 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import "../ControlPanel/ControlPanel.css";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
 
 const ControlPanel = ({
   urls,
@@ -8,9 +10,29 @@ const ControlPanel = ({
   satelliteData,
   isPopupVisible,
   togglePopup,
+  watchList = [],
+  setWatchList,
+  visibleGroups,
+  setVisibleGroups,
 }) => {
+  const [initialCheckDone, setInitialCheckDone] = useState(false);
   const [selectedGroups, setSelectedGroups] = useState([]);
-  const [watchList, setWatchList] = useState([]);
+
+  useEffect(() => {
+    if (!initialCheckDone && watchList.length === 0) {
+      togglePopup(true);
+      setInitialCheckDone(true);
+    }
+  }, [initialCheckDone, watchList]);
+
+  useEffect(() => {
+    // Ensure all groups in the watch list are visible by default
+    setVisibleGroups((prevVisibleGroups) => [
+      ...new Set([...prevVisibleGroups, ...watchList]),
+    ]);
+  }, [watchList]);
+
+  // const [watchList, setWatchList] = useState([]);
 
   const toggleGroupSelection = (key) => {
     setSelectedGroups((prevSelected) =>
@@ -21,9 +43,19 @@ const ControlPanel = ({
   };
 
   const handleAddToWatchList = () => {
-    setWatchList((prevWatchList) => [...prevWatchList, ...selectedGroups]);
+    setWatchList((prevWatchList) => [
+      ...new Set([...prevWatchList, ...selectedGroups]),
+    ]);
     setSelectedGroups([]);
-    togglePopup();
+    togglePopup(false);
+  };
+
+  const handleVisibilityToggle = (key) => {
+    setVisibleGroups((prevVisibleGroups) =>
+      prevVisibleGroups.includes(key)
+        ? prevVisibleGroups.filter((group) => group !== key)
+        : [...prevVisibleGroups, key]
+    );
   };
 
   return (
@@ -70,9 +102,19 @@ const ControlPanel = ({
               <li
                 key={index}
                 onClick={() => setSelectedGroup(group)}
-                className={selectedGroup === group ? "controlSelected" : ""}
+                className={`${
+                  visibleGroups.includes(group) ? "visible-group" : ""
+                }`}
               >
                 {urls[group].title}
+                <FontAwesomeIcon
+                  icon={visibleGroups.includes(group) ? faEye : faEyeSlash}
+                  onClick={(e) => {
+                    e.stopPropagation(); // Prevent triggering the onClick for the group
+                    handleVisibilityToggle(group);
+                  }}
+                  className="visibility-icon"
+                />
               </li>
             ))}
           </ul>

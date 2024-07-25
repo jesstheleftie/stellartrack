@@ -1,4 +1,8 @@
-.ControlPanel{
+body {
+  user-select: none;
+}
+
+.ControlPanel {
   height: 100%;
   width: 100px;
   position: fixed; /* Fixed Sidebar (stay in place) */
@@ -8,127 +12,136 @@
   background-color: rgba(17, 17, 17, 0.75); /* Black */
   overflow-x: hidden; /* Disable horizontal scroll */
   padding-top: 10px;
-
-
-}
-
-.ControlPanel {
-    color: white;
-    padding-left: 10px;
-    font-size: 15px;
+  color: white;
+  padding-left: 10px;
+  font-size: 15px;
 }
 
 .ControlPanel ul {
-    list-style-type: none;
-    padding: 0;  
+  list-style-type: none;
+  padding: 0;
 }
 
-.ControlPanel ul li{
-    padding: 8px 8px 8px 16px;
-    text-decoration: none;
-    font-size: 12px;
-    color: #818181;
-    display: block;
-    
+.ControlPanel ul li {
+  padding: 8px 8px 8px 16px;
+  text-decoration: none;
+  font-size: 12px;
+  color: #818181; /* Default color */
+  display: flex;
+  align-items: center;
+  justify-content: space-between; /* Adjusted for space between text and icon */
+  cursor: pointer;
 }
 
 .ControlPanel ul li:hover {
-    color: #f1f1f1;
-    cursor: pointer;
+  color: #f1f1f1;
+  cursor: pointer;
 }
 
+/* Apply yellow color to selected and visible groups */
+.controlSelected,
+.visible-group {
+  color: rgb(253, 236, 51); /* Yellow color */
+}
+
+/* Ensure that a list item gets highlighted if it matches either selected or visible group */
+.ControlPanel ul li.controlSelected,
+.ControlPanel ul li.visible-group {
+  color: rgb(253, 236, 51); /* Yellow color */
+  
+}
+
+/* Ensure no conflict with default color for items not selected or visible */
+.ControlPanel ul li:not(.controlSelected):not(.visible-group) {
+  color: #818181; /* Default color for non-selected and non-visible groups */
+}
+
+.visibility-icon {
+  margin-left: 10px; /* Added margin to position icon properly */
+  cursor: pointer;
+}
 
 .selected-group-title {
-    margin-top: 10px;
-  }
-  
-  .satellite-data {
-    margin-top: 20px;
-  }
-
-
-  .add-button {
-    width: 35px;
-    height: 35px;
-    border-radius: 10px;
-    background-color: #6a6d70;
-    color: white;
-    font-size: 24px;
-    border: none;
-    cursor: pointer;
-    margin: 30px 25px 5px 25px;
-
-    
-  }
-  
-  .add-button:hover {
-    background-color: #464747;
-  }
-  
-  .popup {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background-color: rgba(17, 17, 17, 0.75);
-    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
-    z-index: 1000;
-    padding: 20px;
-  }
-  
-  .popup-content {
-    display: flex;
-    flex-direction: column;
-    align-items: left;
-    margin-left: 10px;
-    margin-right: 10px;
-    
-  }
-    
-  .popup-content button {
-    margin: 5px 0;
-    padding: 10px 20px;
-    background-color: #45484b;
-    color: white;
-    border: none;
-    cursor: pointer;
-    border-radius: 5px;
-  }
-  
-  .popup-content button:hover {
-    background-color: #a4a5a7;
-  }
-  
-  .close-popup {
-    display:flex;
-    flex-direction: column;
-    align-items: right;
-    text-align: right;
-    cursor: pointer;
-
-
-  }
-
-  .add-to-watch-list {
-    margin-top: 20px; /* Add space above this button */
-    padding: 12px 20px; /* Make it look like a submit button */
-    background-color: #007bff; /* Different color for visibility */
-    color: white;
-    font-weight: bold;
-    border: none;
-    cursor: pointer;
-    border-radius: 5px;
-  }
-  
-  .add-to-watch-list:hover {
-    background-color: #0056b3;
-  }
-
-  .popup-content button.selected {
-    background-color: #d3d3d3;
-    color: rgb(7, 7, 7);
+  margin-top: 10px;
 }
 
-.ControlPanel ul li.controlSelected {
-  color: rgb(238, 195, 52); /* Change 'blue' to your desired clicked color */
+.satellite-data {
+  margin-top: 20px;
+}
+
+.add-button {
+  width: 35px;
+  height: 35px;
+  border-radius: 10px;
+  background-color: #6a6d70;
+  color: white;
+  font-size: 24px;
+  border: none;
+  cursor: pointer;
+  margin: 30px 25px 5px 25px;
+}
+
+.add-button:hover {
+  background-color: #464747;
+}
+
+.popup {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: rgba(17, 17, 17, 0.75);
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  padding: 20px;
+}
+
+.popup-content {
+  display: flex;
+  flex-direction: column;
+  align-items: left;
+  margin-left: 10px;
+  margin-right: 10px;
+}
+
+.popup-content button {
+  margin: 5px 0;
+  padding: 10px 20px;
+  background-color: #45484b;
+  color: white;
+  border: none;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+.popup-content button:hover {
+  background-color: #a4a5a7;
+}
+
+.close-popup {
+  display: flex;
+  flex-direction: column;
+  align-items: right;
+  text-align: right;
+  cursor: pointer;
+}
+
+.add-to-watch-list {
+  margin-top: 20px; /* Add space above this button */
+  padding: 12px 20px; /* Make it look like a submit button */
+  background-color: #007bff; /* Different color for visibility */
+  color: white;
+  font-weight: bold;
+  border: none;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+.add-to-watch-list:hover {
+  background-color: #0056b3;
+}
+
+.popup-content button.selected {
+  background-color: #d3d3d3;
+  color: rgb(7, 7, 7);
 }
