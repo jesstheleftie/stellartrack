@@ -1,0 +1,24 @@
+@keyframes pulsate {
+    0% {
+      transform: scale(0.5);
+      opacity: 1;
+    }
+    50% {
+      transform: scale(1);
+      opacity: 0.5;
+    }
+    100% {
+      transform: scale(0.5);
+      opacity: 1;
+    }
+  }
+  
+  .marker {
+    width: 20px;
+    height: 20px;
+    background-color: blue;
+    border-radius: 50%;
+    animation: pulsate 2s infinite;
+  }
+
+  

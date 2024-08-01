@@ -1,9 +1,7 @@
 import Map, { useControl } from "react-map-gl";
 import ControlPanel from "./ControlPanel/ControlPanel";
 import mapboxgl from "mapbox-gl";
-// mapboxgl.workerClass =
-//   require("worker-loader!mapbox-gl/dist/mapbox-gl-csp-worker").default;
-// import { MapboxOverlay } from "@deck.gl/mapbox/typed";
+import { ScatterplotLayer } from "@deck.gl/layers";
 import { IconLayer } from "deck.gl";
 import DeckGL from "deck.gl";
 import { PointCloudLayer } from "@deck.gl/layers";
@@ -15,12 +13,10 @@ import {
   degreesLong,
   degreesLat,
 } from "satellite.js";
-import React, { useEffect, useState } from "react";
-// const DeckGLOverlay = (mapboxOverlayProps) => {
-//   const overlay = useControl(() => new MapboxOverlay(mapboxOverlayProps));
-//   overlay.setProps(mapboxOverlayProps);
-//   return null;
-// };
+import React, { useEffect, useState, useRef } from "react";
+import VisibleTracker from "./VisibleTrackerBox/VisibleTracker";
+import "../Pages/MapPage.css";
+import "mapbox-gl/dist/mapbox-gl.css";
 
 const MapPage = () => {
   const INITIAL_VIEW_STATE = {
@@ -31,20 +27,7 @@ const MapPage = () => {
     bearing: 0,
   };
   const earthRadius = 6.3e6;
-  // const data = [
-  //   {
-  //     position: [-122.45, 37.78, 12222.455],
-  //     size: 100,
-  //     color: [255, 140, 0],
-  //     elevation: 1000,
-  //   },
-  //   {
-  //     position: [-122.45, 37.75, 12222.455],
-  //     size: 100,
-  //     color: [55, 140, 0],
-  //     elevation: 1000,
-  //   },
-  // ];
+
   function getAltitude(zoomLevel) {
     const tileSize = 256; // Tile size in pixels at zoom level 0
     const initialResolution = (2 * Math.PI * earthRadius) / tileSize; // Resolution at zoom level 0
@@ -116,6 +99,9 @@ const MapPage = () => {
   const [watchList, setWatchList] = useState([]);
   const [visibleGroups, setVisibleGroups] = useState([]);
   const [satelliteData, setSatelliteData] = useState({});
+  const [userLocation, setUserLocation] = useState(null);
+  const [userLocationPixel, setUserLocationPixel] = useState([0, 0]);
+  const mapInstance = useRef(null);
 
   const togglePopup = () => {
     setPopupVisible(!isPopupVisible);
@@ -153,83 +139,122 @@ const MapPage = () => {
       }
     });
   }, [visibleGroups]);
-  // const [satelliteData, setSatelliteData] = useState([]);
-
-  // useEffect(() => {
-  //   const fetchSatelliteData = async () => {
-  //     if (!selectedGroup) return;
-
-  //     try {
-  //       const response = await fetch(urls[`${selectedGroup}`].url);
-  //       const textData = await response.text();
-  //       const parsedData = parseTLEData(textData);
-  //       setSatelliteData(parsedData);
-  //     } catch (error) {
-  //       console.error("Error fetching satellite data:", error);
-  //     }
-  //   };
-
-  //   fetchSatelliteData();
-  // }, [selectedGroup]);
-
-  // const parseTLEData = (data) => {
-  //   const lines = data.trim().split("\n");
-  //   const satellites = [];
-  //   for (let i = 0; i < lines.length; i += 3) {
-  //     satellites.push({
-  //       name: lines[i].trim(),
-  //       TLE_LINE1: lines[i + 1].trim(),
-  //       TLE_LINE2: lines[i + 2].trim(),
-  //     });
-  //   }
-  //   return satellites;
-  // };
-
-  //Function to calculate lat/long
 
   const calculateSatellitePosition = (tleLine1, tleLine2) => {
-    const satrec = twoline2satrec(tleLine1, tleLine2);
-    const positionAndVelocity = propagate(satrec, new Date());
-    const positionEci = positionAndVelocity.position;
-    const gmst = gstime(new Date());
-    const positionGd = eciToGeodetic(positionEci, gmst);
+    try {
+      const satrec = twoline2satrec(tleLine1, tleLine2);
+      const positionAndVelocity = propagate(satrec, new Date());
+      const positionEci = positionAndVelocity.position;
 
-    const longitude = degreesLong(positionGd.longitude);
-    const latitude = degreesLat(positionGd.latitude);
-    const altitude = positionGd.height * 10000; // Convert km to meters
+      if (!positionEci) {
+        console.error(
+          "Position ECI is undefined. Check the TLE lines and propagation calculation."
+        );
+        return [0, 0, 0];
+      }
+      const gmst = gstime(new Date());
+      const positionGd = eciToGeodetic(positionEci, gmst);
 
-    return [longitude, latitude, altitude];
+      const longitude = degreesLong(positionGd.longitude);
+      const latitude = degreesLat(positionGd.latitude);
+      const altitude = positionGd.height * 10000; // Convert km to meters
+
+      return [longitude, latitude, altitude];
+    } catch (error) {
+      console.error("Error calculating satellite position:", error);
+      return [0, 0, 0];
+    }
   };
+  // useEffect(() => {
+  //   if (navigator.geolocation) {
+  //     navigator.geolocation.getCurrentPosition(
+  //       (position) => {
+  //         setUserLocation({
+  //           latitude: position.coords.latitude,
+  //           longitude: position.coords.longitude,
+  //         });
+  //       },
+  //       (error) => console.error("Error fetching user location:", error),
+  //       { enableHighAccuracy: true, timeout: 5000 }
+  //     );
+  //   }
+  // }, []);
 
+  useEffect(() => {
+    if (userLocation && mapInstance.current) {
+      const pixelPosition = mapInstance.current.project([
+        userLocation.longitude,
+        userLocation.latitude,
+      ]);
+      setUserLocationPixel([pixelPosition.x, pixelPosition.y]);
+      console.log("Pixel Position:", pixelPosition.x, pixelPosition.y); // Debugging
+    }
+  }, [userLocation, mapInstance.current]);
+
+  // let mapInstance = null;
+
+  const handleMapLoad = (event) => {
+    mapInstance.current = event.target; // Save the map instance
+    console.log("Map Loaded, Map Instance Set", mapInstance.current); // Add this line for debugging
+    if (userLocation) {
+      const pixelPosition = mapInstance.current.project([
+        userLocation.longitude,
+        userLocation.latitude,
+      ]);
+      setUserLocationPixel([pixelPosition.x, pixelPosition.y]);
+      console.log("Pixel Position on Load:", pixelPosition.x, pixelPosition.y); // Debugging
+    }
+  };
+  // const renderSatelliteLayers = () => {
+  //   return visibleGroups.map((group) => {
+  //     if (!satelliteData[group]) return null;
+
+  //     const data = satelliteData[group].map((satellite) => {
+  //       const [longitude, latitude, altitude] = calculateSatellitePosition(
+  //         satellite.TLE_LINE1,
+  //         satellite.TLE_LINE2
+  //       );
+  //       return {
+  //         position: [longitude, latitude, altitude],
+  //         color: urls[group].color,
+  //       };
+  //     });
   // converting satellite data into Deck.gl-compatible format
 
-  const createLayers = () => {
-    return visibleGroups.map((group, index) => {
-      const data = (satelliteData[group] || []).map((satellite) => {
-        const [longitude, latitude, altitude] = calculateSatellitePosition(
-          satellite.TLE_LINE1,
-          satellite.TLE_LINE2
-        );
-        return {
-          position: [longitude, latitude, altitude],
-          size: urls[group].size || 1,
-          color: urls[group].color || [255, 255, 255], // Default to white if no color is defined
-          elevation: 1000,
-        };
-      });
+  const handleViewStateChange = ({ viewState }) => {
+    if (userLocation && mapInstance.current) {
+      const pixelPosition = mapInstance.current.project([
+        userLocation.longitude,
+        userLocation.latitude,
+      ]);
+      setUserLocationPixel([pixelPosition.x, pixelPosition.y]);
+    }
+  };
 
-      // const deckglSatelliteData = satelliteData.map((satellite) => {
-      //   const [longitude, latitude, altitude] = calculateSatellitePosition(
-      //     satellite.TLE_LINE1,
-      //     satellite.TLE_LINE2
-      //   );
-      //   return {
-      //     position: [longitude, latitude, altitude],
-      //     size: urls[`${selectedGroup}`].size || 1,
-      //     color: [255, 140, 0],
-      //     elevation: 1000,
-      //   };
-      // });
+  const createLayers = () => {
+    // Define the layers array
+    const layers = visibleGroups.map((group) => {
+      const data = (satelliteData[group] || [])
+        .map((satellite) => {
+          const position = calculateSatellitePosition(
+            satellite.TLE_LINE1,
+            satellite.TLE_LINE2
+          );
+
+          if (!position) {
+            console.error(`Invalid position for satellite: ${satellite.name}`);
+            return null; // Skip invalid positions
+          }
+          const [longitude, latitude, altitude] = position;
+
+          return {
+            position: [longitude, latitude, altitude],
+            size: urls[group].size || 1,
+            color: urls[group].color || [255, 255, 255], // Default to white if no color is defined
+            elevation: 1000,
+          };
+        })
+        .filter(Boolean);
 
       return new PointCloudLayer({
         id: `${group}-layer`,
@@ -243,20 +268,26 @@ const MapPage = () => {
         elevationScale: 1,
       });
     });
+
+    if (userLocation) {
+      console.log("User location:", userLocation);
+      layers.push(
+        new ScatterplotLayer({
+          // id: "user-location",
+          data: [userLocation],
+          getPosition: (d) => [d.longitude, d.latitude],
+          getRadius: 100, // Radius in meters
+          getColor: [0, 0, 255], // Blue color for the dot
+          radiusMinPixels: 5, // Minimum radius in pixels
+          radiusMaxPixels: 40, // Maximum radius in pixels
+        })
+      );
+    } else {
+      console.log("User location not available.");
+    }
+    return layers;
   };
-
-  // const pointCloudLayer = new PointCloudLayer({
-  //   id: "pointcloud-layer",
-  //   data: deckglSatelliteData,
-  //   pickable: true,
-  //   getPosition: (d) => d.position,
-  //   getRadius: (d) => d.size,
-  //   pointSize: urls[`${selectedGroup}`].size || 1,
-  //   getColor: (d) => d.color,
-  //   getElevation: (d) => d.elevation,
-  //   elevationScale: 1,
-  // });
-
+  console.log("getMarker", createLayers());
   return (
     <div>
       <ControlPanel
@@ -265,7 +296,7 @@ const MapPage = () => {
         setSelectedGroup={setSelectedGroup}
         satelliteData={satelliteData}
         isPopupVisible={isPopupVisible}
-        togglePopup={togglePopup}
+        togglePopup={() => setPopupVisible(!isPopupVisible)}
         watchList={watchList}
         setWatchList={setWatchList}
         visibleGroups={visibleGroups}
@@ -277,6 +308,7 @@ const MapPage = () => {
         initialViewState={INITIAL_VIEW_STATE}
         controller={true}
         layers={createLayers()}
+        onViewStateChange={handleViewStateChange}
 
         // layers={[pointCloudLayer]}
         // onViewStateChange={(data) =>
@@ -291,10 +323,26 @@ const MapPage = () => {
             [-180, -90], // Southwest coordinates
             [180, 90], // Northeast coordinates
           ]}
-          // maxZoom={16}
-          // minZoom={2}
+          // onLoad={handleMapLoad}
+          // When the map loads, ensure the user location is updated
         />
+        {/* {userLocation && (
+          <div
+            style={{
+              position: "absolute",
+              top: `${userLocationPixel[1] - 10}px`, // Adjust for centering
+              left: `${userLocationPixel[0] - 10}px`, // Adjust for centering
+              width: "20px",
+              height: "20px",
+              borderRadius: "50%",
+              backgroundColor: "rgba(0, 0, 255, 0.7)",
+              boxShadow: "0 0 15px 5px rgba(0, 0, 255, 0.5)",
+              transform: "translate(-50%, -50%)", // Center the dot
+            }}
+          ></div>
+        )} */}
       </DeckGL>
+      <VisibleTracker setUserLocation={setUserLocation} />
     </div>
   );
 };

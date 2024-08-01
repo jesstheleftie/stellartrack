@@ -25,13 +25,6 @@ const ControlPanel = ({
     }
   }, [initialCheckDone, watchList]);
 
-  useEffect(() => {
-    // Ensure all groups in the watch list are visible by default
-    setVisibleGroups((prevVisibleGroups) => [
-      ...new Set([...prevVisibleGroups, ...watchList]),
-    ]);
-  }, [watchList]);
-
   // const [watchList, setWatchList] = useState([]);
 
   const toggleGroupSelection = (key) => {
@@ -43,9 +36,17 @@ const ControlPanel = ({
   };
 
   const handleAddToWatchList = () => {
+    const newGroups = selectedGroups.filter(
+      (group) => !watchList.includes(group)
+    );
+
     setWatchList((prevWatchList) => [
       ...new Set([...prevWatchList, ...selectedGroups]),
     ]);
+    setVisibleGroups((prevVisibleGroups) => [
+      ...new Set([...prevVisibleGroups, ...newGroups]),
+    ]);
+
     setSelectedGroups([]);
     togglePopup(false);
   };
@@ -63,7 +64,7 @@ const ControlPanel = ({
       <div>Stellar Track</div>
       {/* Square button with "+" */}
       <button className="add-button" onClick={togglePopup}>
-        +
+      +
       </button>
 
       {/* Popup for selecting a group */}
