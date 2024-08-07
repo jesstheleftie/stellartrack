@@ -64,7 +64,7 @@ const ControlPanel = ({
       <div>Stellar Track</div>
       {/* Square button with "+" */}
       <button className="add-button" onClick={togglePopup}>
-      +
+        +
       </button>
 
       {/* Popup for selecting a group */}
