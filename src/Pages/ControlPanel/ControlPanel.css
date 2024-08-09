@@ -95,6 +95,7 @@ body {
   box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
   z-index: 1000;
   padding: 20px;
+  border-radius: 10px;
 }
 
 .popup-content {
@@ -103,6 +104,18 @@ body {
   align-items: left;
   margin-left: 10px;
   margin-right: 10px;
+  width: 300px; /* Set a fixed width */
+  height: 400px; /* Set a fixed height */
+  overflow-y: hidden; /* Make content scrollable */
+  /* padding-bottom: 10px; Add padding to the bottom for the sticky button */
+  position: relative; /* For positioning the sticky button */
+}
+
+.popup-content-inner {
+  overflow-y: auto; /* Make the inner content scrollable */
+  padding-bottom: 10px; /* Space between content and button */
+  padding-right: 15px;
+  flex-grow: 1; /* Allow the content to grow and fill space */
 }
 
 .popup-content button {
@@ -128,21 +141,73 @@ body {
 }
 
 .add-to-watch-list {
-  margin-top: 20px; /* Add space above this button */
-  padding: 12px 20px; /* Make it look like a submit button */
-  background-color: #007bff; /* Different color for visibility */
-  color: white;
-  font-weight: bold;
+  width: 100%;
+  padding: 10px;
   border: none;
-  cursor: pointer;
+  background-color: #007bff !important;
+  color: #fff;
   border-radius: 5px;
+  cursor: pointer;
+  margin-top: 10px;
 }
 
 .add-to-watch-list:hover {
   background-color: #0056b3;
 }
 
+.add-to-watch-list:disabled {
+  background-color: #6c757d; /* Gray color for disabled state */
+}
+
 .popup-content button.selected {
   background-color: #d3d3d3;
   color: rgb(7, 7, 7);
+}
+
+/* Style for the category buttons */
+.category-button {
+  background-color: #333;
+  color: white;
+  font-weight: bold;
+  border: none;
+  padding: 10px 15px;
+  margin: 5px 0;
+  cursor: pointer;
+  width: 100%;
+  text-align: center;
+  border-radius: 5px;
+}
+
+.category-button:hover {
+  background-color: #555;
+}
+
+/* Style for the expanded category content */
+.category-content {
+  margin-left: 15px; /* Indent the groups to show they are under the category */
+  padding-left: 10px;
+  border-left: 2px solid #555; /* Add a left border to visually connect the groups to the category */
+}
+
+/* Style for the group buttons */
+.category-content button {
+  background-color: #45484b;
+  color: white;
+  border: none;
+  padding: 8px 15px;
+  margin: 5px 0;
+  cursor: pointer;
+  width: calc(100% - 20px); /* Adjust width to fit within the container and leave space for padding */
+  text-align: left;
+  border-radius: 5px;
+}
+
+.category-content button:hover {
+  background-color: #a4a5a7;
+}
+
+/* Style for selected group buttons */
+.category-content button.selected {
+  background-color: #d3d3d3;
+  color: #000;
 }

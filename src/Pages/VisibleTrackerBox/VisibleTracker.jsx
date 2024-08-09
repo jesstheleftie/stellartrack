@@ -8,6 +8,7 @@ const VisibleTracker = ({ setUserLocation }) => {
   const [locationInfo, setLocationInfo] = useState("");
   const [latitude, setLatitude] = useState("");
   const [longitude, setLongitude] = useState("");
+  const [isTracking, setIsTracking] = useState(false);
   const mapboxAccessToken = process.env.REACT_APP_MAPBOX_API;
 
   const handleMouseDown = (e) => {
@@ -37,6 +38,7 @@ const VisibleTracker = ({ setUserLocation }) => {
         async (position) => {
           const { latitude, longitude } = position.coords;
           setUserLocation({ latitude, longitude });
+          setIsTracking(true);
           try {
             const response = await fetch(
               `https://api.mapbox.com/geocoding/v5/mapbox.places/${longitude},${latitude}.json?access_token=${mapboxAccessToken}`
@@ -82,8 +84,15 @@ const VisibleTracker = ({ setUserLocation }) => {
     setLocationInfo(
       `Your inputted location is: (Latitude: ${lat}, Longitude: ${lon})`
     );
+    setIsTracking(true);
   };
-
+  const handleStopTracking = () => {
+    setIsTracking(false); // Stop tracking
+    setUserLocation(null); // Remove location dot on map
+    setLocationInfo(""); // Clear location info
+    setLatitude("");
+    setLongitude("");
+  };
   return (
     <div
       className="floating-div"
@@ -95,8 +104,13 @@ const VisibleTracker = ({ setUserLocation }) => {
     >
       <div className="inner-div">
         <h3>Visible Satellite Tracker</h3>
-        {locationInfo ? (
-          <p className="location-info">{locationInfo}</p>
+        {isTracking ? (
+          <>
+            <p className="location-info">{locationInfo}</p>
+            <button onClick={handleStopTracking} className="stop-tracking-button">
+              Stop Tracking
+            </button>
+          </>
         ) : (
           <>
             <form onSubmit={handleSubmit}>

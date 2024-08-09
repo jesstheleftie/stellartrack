@@ -14,9 +14,12 @@ const ControlPanel = ({
   setWatchList,
   visibleGroups,
   setVisibleGroups,
+  categories = {},
 }) => {
   const [initialCheckDone, setInitialCheckDone] = useState(false);
   const [selectedGroups, setSelectedGroups] = useState([]);
+  const [expandedCategory, setExpandedCategory] = useState(null);
+  const [selectedItems, setSelectedItems] = useState([]);
 
   useEffect(() => {
     if (!initialCheckDone && watchList.length === 0) {
@@ -58,7 +61,10 @@ const ControlPanel = ({
         : [...prevVisibleGroups, key]
     );
   };
-
+  const handleCategoryClick = (category) => {
+    setExpandedCategory(expandedCategory === category ? null : category);
+  };
+  const isButtonDisabled = selectedGroups.length === 0; // Disable button if no items are selected
   return (
     <div className="ControlPanel">
       <div>Stellar Track</div>
@@ -75,21 +81,48 @@ const ControlPanel = ({
               x
             </div>
             <h3>Select a Group</h3>
-            {Object.keys(urls).map((key) => (
-              <button
-                key={key}
-                onClick={() => toggleGroupSelection(key)}
-                className={selectedGroups.includes(key) ? "selected" : ""}
-              >
-                {urls[key].title}
-              </button>
-            ))}
+            <div className="popup-content-inner">
+              {Object.keys(urls).map((categoryKey) => {
+                const categoryTitle =
+                  categories[categoryKey] || "Unknown Category";
+                const categoryData = urls[categoryKey] || {};
 
+                return (
+                  <div key={categoryKey}>
+                    <button
+                      className="category-button"
+                      onClick={() => handleCategoryClick(categoryKey)}
+                    >
+                      {categoryTitle}
+                    </button>
+                    {expandedCategory === categoryKey && (
+                      <div className="category-content">
+                        {Object.keys(categoryData).map((key) => {
+                          const group = categoryData[key] || {};
+                          return (
+                            <button
+                              key={key}
+                              onClick={() => toggleGroupSelection(key)}
+                              className={
+                                selectedGroups.includes(key) ? "selected" : ""
+                              }
+                            >
+                              {group.title || "No Title"}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
             <button
               className="add-to-watch-list"
               onClick={handleAddToWatchList}
+              disabled={isButtonDisabled}
             >
-              ADD TO WATCH LIST
+              Add To Watch List
             </button>
           </div>
         </div>
@@ -99,34 +132,34 @@ const ControlPanel = ({
         <div className="watch-list">
           <h3>Watch List</h3>
           <ul>
-            {watchList.map((group, index) => (
-              <li
-                key={index}
-                onClick={() => setSelectedGroup(group)}
-                className={`${
-                  visibleGroups.includes(group) ? "visible-group" : ""
-                }`}
-              >
-                {urls[group].title}
-                <FontAwesomeIcon
-                  icon={visibleGroups.includes(group) ? faEye : faEyeSlash}
-                  onClick={(e) => {
-                    e.stopPropagation(); // Prevent triggering the onClick for the group
-                    handleVisibilityToggle(group);
-                  }}
-                  className="visibility-icon"
-                />
-              </li>
-            ))}
+            {watchList.map((group, index) => {
+              const groupData =
+                Object.values(urls)
+                  .flatMap((category) => Object.entries(category))
+                  .find(([key, data]) => key === group)?.[1] || {};
+              return (
+                <li
+                  key={index}
+                  onClick={() => setSelectedGroup(group)}
+                  className={`${
+                    visibleGroups.includes(group) ? "visible-group" : ""
+                  }`}
+                >
+                  {groupData.title || "No Title"}
+                  <FontAwesomeIcon
+                    icon={visibleGroups.includes(group) ? faEye : faEyeSlash}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleVisibilityToggle(group);
+                    }}
+                    className="visibility-icon"
+                  />
+                </li>
+              );
+            })}
           </ul>
         </div>
       )}
-
-      {/* {selectedGroup && (
-        <div className="selected-group-title">
-          <h3>{urls[selectedGroup].title}</h3>
-        </div>
-      )} */}
     </div>
   );
 };

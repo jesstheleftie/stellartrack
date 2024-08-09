@@ -63,4 +63,17 @@
     font-size: 14px;
   }
 
+  .stop-tracking-button {
+    width: 100%;
+    padding: 10px;
+    border: none;
+    background-color: #dc3545; /* Red color */
+    color: #fff;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-top: 10px;
+  }
   
+  .stop-tracking-button:hover {
+    background-color: #c82333; /* Darker red on hover */
+  }

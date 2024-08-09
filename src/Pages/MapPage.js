@@ -17,7 +17,10 @@ import React, { useEffect, useState, useRef } from "react";
 import VisibleTracker from "./VisibleTrackerBox/VisibleTracker";
 import "../Pages/MapPage.css";
 import "mapbox-gl/dist/mapbox-gl.css";
-import {calculateDistance, isSatelliteWithinRadius} from "../Pages/utils/utils";
+import {
+  calculateDistance,
+  isSatelliteWithinRadius,
+} from "../Pages/utils/utils";
 
 const MapPage = () => {
   const INITIAL_VIEW_STATE = {
@@ -38,359 +41,383 @@ const MapPage = () => {
 
     return altitude;
   }
-
+  const categories = {
+    specialInterestSatellites: "Special Interest Satellites",
+    weatherAndEarthResourcesSatellites: "Weather & Earth Resources Satellites",
+    communicationsSatellites: "Communication Satelllites",
+    navigationSatellites: "Navigation Satellites",
+    scientificSatellites: "Scientific Satellites",
+    miscellaneousSatellites: "Miscellaneous Satellites",
+  };
   const urls = {
-    starlink: {
-      url: "https://celestrak.org/NORAD/elements/gp.php?GROUP=starlink&FORMAT=tle",
-      size: 1,
-      title: "Starlink",
-      color: [255, 0, 0], //Red
+    specialInterestSatellites: {
+      last30DayLaunches: {
+        url: "https://celestrak.org/NORAD/elements/gp.php?GROUP=last-30-days&FORMAT=tle",
+        size: 3,
+        title: "Last 30 Day Launches",
+        color: [0, 255, 255], // Cyan
+      },
+      ISS: {
+        url: "https://celestrak.org/NORAD/elements/gp.php?CATNR=25544&FORMAT=TLE",
+        size: 5,
+        title: "ISS",
+        color: [0, 255, 0], // Green
+      },
+
+      hubble: {
+        url: "https://celestrak.org/NORAD/elements/gp.php?INTDES=1990-037",
+        size: 5,
+        title: "Hubble",
+        color: [255, 255, 0], // Yellow
+      },
+      spaceStation: {
+        url: "https://celestrak.org/NORAD/elements/gp.php?GROUP=stations&FORMAT=tle",
+        size: 3,
+        title: "Space Station",
+        color: [75, 0, 130], //Indigo
+      },
+
+      oneHundredBrightest: {
+        url: "https://celestrak.org/NORAD/elements/gp.php?GROUP=visual&FORMAT=tle",
+        size: 3,
+        title: "100 Brightest",
+        color: [255, 105, 180], // Pink
+      },
+
+      activeSatellites: {
+        url: "https://celestrak.org/NORAD/elements/gp.php?GROUP=active&FORMAT=tle",
+        size: 3,
+        title: "Active Satellites",
+        color: [0, 255, 0], //Lime
+      },
+      analystSatellites: {
+        url: "https://celestrak.org/NORAD/elements/gp.php?GROUP=analyst&FORMAT=tle",
+        size: 3,
+        title: "Analyst Satellites",
+        color: [0, 128, 128], //Teal
+      },
+      RussianASATTestDebris: {
+        url: "https://celestrak.org/NORAD/elements/gp.php?GROUP=cosmos-1408-debris&FORMAT=tle",
+        size: 3,
+        title: "Russian ASAT Test Debris",
+        color: [128, 0, 0], //Maroon
+      },
+      ChineseASATTestDebris: {
+        url: "https://celestrak.org/NORAD/elements/index.php?FORMAT=tle",
+        size: 3,
+        title: "Chinese ASAT Test Debris",
+        color: [165, 42, 42], //Brown
+      },
+      Iridium33Debris: {
+        url: "https://celestrak.org/NORAD/elements/gp.php?GROUP=iridium-33-debris&FORMAT=tle",
+        size: 3,
+        title: "Iridium 33 Deris",
+        color: [250, 128, 114], //Salmon
+      },
+      Cosmos2251Debris: {
+        url: "https://celestrak.org/NORAD/elements/gp.php?GROUP=cosmos-2251-debris&FORMAT=tle",
+        size: 3,
+        title: "Cosmos 2251 Debris",
+        color: [128, 128, 0], //Olive
+      },
     },
-    ISS: {
-      url: "https://celestrak.org/NORAD/elements/gp.php?CATNR=25544&FORMAT=TLE",
-      size: 5,
-      title: "ISS",
-      color: [0, 255, 0], // Green
-    },
-    galileo: {
-      url: "https://celestrak.org/NORAD/elements/gp.php?GROUP=galileo&FORMAT=tle",
-      size: 5,
-      title: "Galileo",
-      color: [0, 0, 255], // Blue
-    },
-    hubble: {
-      url: "https://celestrak.org/NORAD/elements/gp.php?INTDES=1990-037",
-      size: 5,
-      title: "Hubble",
-      color: [255, 255, 0], // Yellow
-    },
-    beidou: {
-      url: "https://celestrak.org/NORAD/elements/gp.php?GROUP=beidou&FORMAT=tle",
-      size: 5,
-      title: "Beidou",
-      color: [255, 165, 0], // Orange
-    },
-    iridium: {
-      url: "https://celestrak.org/NORAD/elements/gp.php?GROUP=iridium&FORMAT=tle",
-      size: 5,
-      title: "Iridium",
-      color: [128, 0, 128], // Purple
-    },
-    last30DayLaunch: {
-      url: "https://celestrak.org/NORAD/elements/gp.php?GROUP=last-30-days&FORMAT=tle",
-      size: 3,
-      title: "Last 30 Day Launch",
-      color: [0, 255, 255], // Cyan
-    },
-    oneHundredBrightest: {
-      url: "https://celestrak.org/NORAD/elements/gp.php?GROUP=visual&FORMAT=tle",
-      size: 3,
-      title: "100 Brightest",
-      color: [255, 105, 180], // Pink
-    },
-    spire: {
-      url: "https://celestrak.org/NORAD/elements/gp.php?GROUP=spire&FORMAT=tle",
-      size: 5,
-      title: "Spire",
-      color: [0, 128, 0], // Dark Green
-    },
-    spaceStation: {
-      url: "https://celestrak.org/NORAD/elements/gp.php?GROUP=stations&FORMAT=tle",
-      size: 3,
-      title: "Space Station",
-      color: [75, 0, 130], //Indigo
-    },
-    activeSatellites: {
-      url: "https://celestrak.org/NORAD/elements/gp.php?GROUP=active&FORMAT=tle",
-      size: 3,
-      title: "Active Satellites",
-      color: [0, 255, 0], //Lime
-    },
-    analystSatellites: {
-      url: "https://celestrak.org/NORAD/elements/gp.php?GROUP=analyst&FORMAT=tle",
-      size: 3,
-      title: "Analyst Satellites",
-      color: [0, 128, 128], //Teal
-    },
-    RussianASATTestDebris: {
-      url: "https://celestrak.org/NORAD/elements/gp.php?GROUP=cosmos-1408-debris&FORMAT=tle",
-      size: 3,
-      title: "Russian ASAT Test Debris",
-      color: [128, 0, 0], //Maroon
-    },
-    ChineseASATTestDebris: {
-      url: "https://celestrak.org/NORAD/elements/index.php?FORMAT=tle",
-      size: 3,
-      title: "Chinese ASAT Test Debris",
-      color: [165, 42, 42], //Brown
-    },
-    Iridium33Debris: {
-      url: "https://celestrak.org/NORAD/elements/gp.php?GROUP=iridium-33-debris&FORMAT=tle",
-      size: 3,
-      title: "Iridium 33 Deris",
-      color: [250, 128, 114], //Salmon
-    },
-    Cosmos2251Debris: {
-      url: "https://celestrak.org/NORAD/elements/gp.php?GROUP=cosmos-2251-debris&FORMAT=tle",
-      size: 3,
-      title: "Cosmos 2251 Debris",
-      color: [128, 128, 0], //Olive
+    weatherAndEarthResourcesSatellites: {
+      Weather: {
+        url: "https://celestrak.org/NORAD/elements/gp.php?GROUP=weather&FORMAT=tle",
+        size: 3,
+        title: "Weather",
+        color: [0, 0, 128], //Navy
+      },
+
+      NOAA: {
+        url: "https://celestrak.org/NORAD/elements/gp.php?GROUP=noaa&FORMAT=tle",
+        size: 3,
+        title: "NOAA",
+        color: [192, 192, 192], //Silver
+      },
+
+      GOES: {
+        url: "https://celestrak.org/NORAD/elements/gp.php?GROUP=goes&FORMAT=tle",
+        size: 3,
+        title: "GOES",
+        color: [139, 0, 139], //Dark Magenta
+      },
+
+      EarthResources: {
+        url: "https://celestrak.org/NORAD/elements/gp.php?GROUP=resource&FORMAT=tle",
+        size: 3,
+        title: "Earth Resources",
+        color: [210, 105, 30], //Chocolate
+      },
+
+      SARSAT: {
+        url: "https://celestrak.org/NORAD/elements/gp.php?GROUP=sarsat&FORMAT=tle",
+        size: 3,
+        title: "Search & Rescue",
+        color: [65, 105, 225], //Royal Blue
+      },
+
+      DisasterMonitoring: {
+        url: "https://celestrak.org/NORAD/elements/gp.php?GROUP=dmc&FORMAT=tle",
+        size: 3,
+        title: "Diaster Monitoring",
+        color: [0, 139, 139], //Dark Cyan
+      },
+
+      TDRSS: {
+        url: "https://celestrak.org/NORAD/elements/gp.php?GROUP=tdrss&FORMAT=tle",
+        size: 3,
+        title: "TDRSS",
+        color: [220, 20, 60], //Crimson
+      },
+
+      ARGOS: {
+        url: "https://celestrak.org/NORAD/elements/gp.php?GROUP=argos&FORMAT=tle",
+        size: 3,
+        title: "ARGOS",
+        color: [186, 85, 211], //Medium Orchid
+      },
+
+      Planet: {
+        url: "https://celestrak.org/NORAD/elements/gp.php?GROUP=planet&FORMAT=tle",
+        size: 3,
+        title: "Planet",
+        color: [32, 178, 170], //Light Sea Green
+      },
+
+      spire: {
+        url: "https://celestrak.org/NORAD/elements/gp.php?GROUP=spire&FORMAT=tle",
+        size: 5,
+        title: "Spire",
+        color: [0, 128, 0], // Dark Green
+      },
     },
 
-  Weather: {
-    url: "https://celestrak.org/NORAD/elements/gp.php?GROUP=weather&FORMAT=tle",
-    size: 3,
-    title: "Weather",
-    color: [0, 0, 128], //Navy
-  },
+    communicationsSatellites: {
+      ActiveGeosynchronous: {
+        url: "https://celestrak.org/NORAD/elements/gp.php?GROUP=geo&FORMAT=tle",
+        size: 3,
+        title: "Active Geosynchronous",
+        color: [255, 127, 80], //Coral
+      },
 
-  NOAA: {
-    url: "https://celestrak.org/NORAD/elements/gp.php?GROUP=noaa&FORMAT=tle",
-    size: 3,
-    title: "NOAA",
-    color: [192, 192, 192], //Silver
-  },
+      GEOProtectedZone: {
+        url: "https://celestrak.org/NORAD/elements/gp.php?SPECIAL=gpz&FORMAT=tle",
+        size: 3,
+        title: "GEOProtectedZone",
+        color: [72, 61, 139], //Dark Slate Blue
+      },
 
-  GOES: {
-    url: "https://celestrak.org/NORAD/elements/gp.php?GROUP=goes&FORMAT=tle",
-    size: 3,
-    title: "GOES",
-    color: [139, 0, 139], //Dark Magenta 
-  },
+      GEOProtectedZonePlus: {
+        url: "https://celestrak.org/NORAD/elements/gp.php?SPECIAL=gpz-plus&FORMAT=tle",
+        size: 3,
+        title: "GEO Protected Zone Plus",
+        color: [255, 20, 147], //Deep Pink
+      },
 
-  EarthResources: {
-    url: "https://celestrak.org/NORAD/elements/gp.php?GROUP=resource&FORMAT=tle",
-    size: 3,
-    title: "Earth Resources",
-    color: [210, 105, 30], //Chocolate
-  },
+      Intelsat: {
+        url: "https://celestrak.org/NORAD/elements/gp.php?GROUP=intelsat&FORMAT=tle",
+        size: 3,
+        title: "Intelsat",
+        color: [255, 140, 0], //Dark Orange
+      },
 
-  SARSAT: {
-    url: "https://celestrak.org/NORAD/elements/gp.php?GROUP=sarsat&FORMAT=tle",
-    size: 3,
-    title: "Search & Rescue",
-    color: [65, 105, 225], //Royal Blue
-  },
+      SES: {
+        url: "https://celestrak.org/NORAD/elements/gp.php?GROUP=ses&FORMAT=tle",
+        size: 3,
+        title: "SES",
+        color: [144, 238, 144], //Light Green
+      },
+      iridium: {
+        url: "https://celestrak.org/NORAD/elements/gp.php?GROUP=iridium&FORMAT=tle",
+        size: 5,
+        title: "Iridium",
+        color: [128, 0, 128], // Purple
+      },
+      IridiumNEXT: {
+        url: "https://celestrak.org/NORAD/elements/gp.php?GROUP=iridium-NEXT&FORMAT=tle",
+        size: 3,
+        title: "Iridum NEXT",
+        color: [255, 99, 71], //Tomato
+      },
+      starlink: {
+        url: "https://celestrak.org/NORAD/elements/gp.php?GROUP=starlink&FORMAT=tle",
+        size: 1,
+        title: "Starlink",
+        color: [255, 0, 0], //Red
+      },
+      OneWeb: {
+        url: "https://celestrak.org/NORAD/elements/gp.php?GROUP=oneweb&FORMAT=tle",
+        size: 3,
+        title: "OneWeb",
+        color: [240, 230, 140], //Khaki
+      },
+      Orbcomm: {
+        url: "https://celestrak.org/NORAD/elements/gp.php?GROUP=orbcomm&FORMAT=tle",
+        size: 3,
+        title: "Orbcomm",
+        color: [85, 107, 47], //Dark Olive Green
+      },
+      Globalstar: {
+        url: "https://celestrak.org/NORAD/elements/gp.php?GROUP=globalstar&FORMAT=tle",
+        size: 3,
+        title: "Globalstar",
+        color: [72, 209, 204], //Medium Turquoise
+      },
+      Swarm: {
+        url: "https://celestrak.org/NORAD/elements/gp.php?GROUP=swarm&FORMAT=tle",
+        size: 3,
+        title: "Swarm",
+        color: [106, 90, 205], //Slate Blue
+      },
+      AmateurRadio: {
+        url: "https://celestrak.org/NORAD/elements/gp.php?GROUP=amateur&FORMAT=tle",
+        size: 3,
+        title: "AmateurRadio",
+        color: [255, 105, 180], //Hot Pink
+      },
+      ExperimentalComm: {
+        url: "https://celestrak.org/NORAD/elements/gp.php?GROUP=x-comm&FORMAT=tle",
+        size: 3,
+        title: "Experimental Comm",
+        color: [107, 142, 35], //Olive Drab
+      },
+      OtherComm: {
+        url: "https://celestrak.org/NORAD/elements/gp.php?GROUP=other-comm&FORMAT=tle",
+        size: 3,
+        title: "Other Comms",
+        color: [255, 218, 185], //Peach Puff
+      },
+      SatNOGS: {
+        url: "https://celestrak.org/NORAD/elements/gp.php?GROUP=satnogs&FORMAT=tle",
+        size: 3,
+        title: "Sat NOGS",
+        color: [188, 143, 143], //Rosy Brown
+      },
+      Gorizont: {
+        url: "https://celestrak.org/NORAD/elements/gp.php?GROUP=gorizont&FORMAT=tle",
+        size: 3,
+        title: "Gorizont",
+        color: [70, 130, 180], //Steel Blue
+      },
+      Raduga: {
+        url: "https://celestrak.org/NORAD/elements/gp.php?GROUP=raduga&FORMAT=tle",
+        size: 3,
+        title: "Raduga",
+        color: [46, 139, 87], //Sea Green
+      },
+      Molniya: {
+        url: "https://celestrak.org/NORAD/elements/gp.php?GROUP=molniya&FORMAT=tle",
+        size: 3,
+        title: "Molniya",
+        color: [240, 128, 128], //Light Coral
+      },
+    },
 
-  DisasterMonitoring: {
-    url: "https://celestrak.org/NORAD/elements/gp.php?GROUP=dmc&FORMAT=tle",
-    size: 3,
-    title: "Diaster Monitoring",
-    color: [0, 139, 139], //Dark Cyan
-  },
+    navigationSatellites: {
+      galileo: {
+        url: "https://celestrak.org/NORAD/elements/gp.php?GROUP=galileo&FORMAT=tle",
+        size: 5,
+        title: "Galileo",
+        color: [0, 0, 255], // Blue
+      },
+      GNSS: {
+        url: "https://celestrak.org/NORAD/elements/gp.php?GROUP=gnss&FORMAT=tle",
+        size: 3,
+        title: "GNSS",
+        color: [205, 133, 63], //Peru
+      },
+      GPSOperational: {
+        url: "https://celestrak.org/NORAD/elements/gp.php?GROUP=gps-ops&FORMAT=tle",
+        size: 3,
+        title: "GPS Operational",
+        color: [119, 136, 153], //Light Slate Gray
+      },
+      GLONASSOperational: {
+        url: "https://celestrak.org/NORAD/elements/gp.php?GROUP=glo-ops&FORMAT=tle",
+        size: 3,
+        title: "GLONASS Operational",
+        color: [60, 179, 113], //Medium Sea Green
+      },
+      beidou: {
+        url: "https://celestrak.org/NORAD/elements/gp.php?GROUP=beidou&FORMAT=tle",
+        size: 5,
+        title: "Beidou",
+        color: [255, 165, 0], // Orange
+      },
+      SatelliteBasedAugmentationSystem: {
+        url: "https://celestrak.org/NORAD/elements/gp.php?GROUP=sbas&FORMAT=tle",
+        size: 3,
+        title: "Satellite Based Augmentation System",
+        color: [244, 164, 96], //Sandy Brown
+      },
+      NavyNavigationSatelliteSystem: {
+        url: "https://celestrak.org/NORAD/elements/gp.php?GROUP=nnss&FORMAT=tle",
+        size: 3,
+        title: "Navy Navigation Satellite System",
+        color: [0, 206, 209], //Dark Turquoise
+      },
+      RussianLEONavigation: {
+        url: "https://celestrak.org/NORAD/elements/gp.php?GROUP=musson&FORMAT=tle",
+        size: 3,
+        title: "Russian LEO Navigation",
+        color: [219, 112, 147], //Pale Violet Red
+      },
+    },
 
-  TDRSS: {
-    url: "https://celestrak.org/NORAD/elements/gp.php?GROUP=tdrss&FORMAT=tle",
-    size: 3,
-    title: "TDRSS",
-    color: [220, 20, 60], //Crimson
-  },
+    scientificSatellites: {
+      SpaceAndEarthScience: {
+        url: "https://celestrak.org/NORAD/elements/gp.php?GROUP=science&FORMAT=tle",
+        size: 3,
+        title: "Space & Earth Science",
+        color: [34, 139, 34], // Forest Green
+      },
+      Geodetic: {
+        url: "https://celestrak.org/NORAD/elements/gp.php?GROUP=geodetic&FORMAT=tle",
+        size: 3,
+        title: "Geodetic",
+        color: [100, 149, 237], //Corn Flower Blue
+      },
+      Engineering: {
+        url: "https://celestrak.org/NORAD/elements/gp.php?GROUP=engineering&FORMAT=tle",
+        size: 3,
+        title: "Engineering",
+        color: [160, 82, 45], //Sienna
+      },
+      Education: {
+        url: "https://celestrak.org/NORAD/elements/gp.php?GROUP=education&FORMAT=tle",
+        size: 3,
+        title: "Education",
+        color: [102, 205, 170], //Medium Aqua Marine
+      },
+    },
 
-  ARGOS: {
-    url: "https://celestrak.org/NORAD/elements/gp.php?GROUP=argos&FORMAT=tle",
-    size: 3,
-    title: "ARGOS",
-    color: [186, 85, 211], //Medium Orchid
-  },
-
-  Planet: {
-    urls: "https://celestrak.org/NORAD/elements/gp.php?GROUP=planet&FORMAT=tle",
-    size: 3,
-    title: "Planet",
-    color: [32, 178, 170], //Light Sea Green
-  },
-
-  ActiveGeosynchronous: {
-    urls: "https://celestrak.org/NORAD/elements/gp.php?GROUP=geo&FORMAT=tle",
-    size: 3,
-    title: "Active Geosynchronous",
-    color: [255, 127, 80], //Coral
-  },
-
-  GEOProtectedZone: {
-    urls: "https://celestrak.org/NORAD/elements/gp.php?SPECIAL=gpz&FORMAT=tle",
-    size: 3,
-    title: "GEOProtectedZone",
-    color: [72, 61, 139], //Dark Slate Blue
-  },
-
-  GEOProtectedZonePlus: {
-    urls: "https://celestrak.org/NORAD/elements/gp.php?SPECIAL=gpz-plus&FORMAT=tle",
-    size: 3,
-    title: "GEO Protected Zone Plus",
-    color: [255, 20, 147], //Deep Pink
-  },
-
-  Intelsat: {
-    urls: "https://celestrak.org/NORAD/elements/gp.php?GROUP=intelsat&FORMAT=tle",
-    size: 3,
-    title: "Intelsat",
-    color: [255, 140, 0], //Dark Orange
-  },
-
-SES: {
-  urls: "https://celestrak.org/NORAD/elements/gp.php?GROUP=ses&FORMAT=tle",
-  size: 3,
-  title: "SES",
-  color: [144, 238, 144], //Light Green
-},
-IridiumNEXT: {
-  urls: "https://celestrak.org/NORAD/elements/gp.php?GROUP=iridium-NEXT&FORMAT=tle",
-  size: 3,
-  title: "Iridum NEXT",
-  color: [255, 99, 71], //Tomato
-},
-OneWeb: {
-  urls: "https://celestrak.org/NORAD/elements/gp.php?GROUP=oneweb&FORMAT=tle",
-  size: 3,
-  title: "OneWeb",
-  color: [240, 230, 140], //Khaki
-},
-Orbcomm: {
-  urls: "https://celestrak.org/NORAD/elements/gp.php?GROUP=orbcomm&FORMAT=tle",
-  size: 3,
-  title: "Orbcomm",
-  color: [85, 107, 47], //Dark Olive Green
-},
-Globalstar: {
-  urls: "https://celestrak.org/NORAD/elements/gp.php?GROUP=globalstar&FORMAT=tle",
-  size: 3,
-  title: "Globalstar",
-  color: [72, 209, 204], //Medium Turquoise
-},
-Swarm: {
-  urls: "https://celestrak.org/NORAD/elements/gp.php?GROUP=swarm&FORMAT=tle",
-  size: 3,
-  title: "Swarm",
-  color: [106, 90, 205], //Slate Blue
-},
-AmateurRadio: {
-  urls: "https://celestrak.org/NORAD/elements/gp.php?GROUP=amateur&FORMAT=tle",
-  size: 3,
-  title: "AmateurRadio",
-  color: [255, 105, 180], //Hot Pink
-},
-ExperimentalComm: {
-  urls: "https://celestrak.org/NORAD/elements/gp.php?GROUP=x-comm&FORMAT=tle",
-  size: 3,
-  title: "Experimental Comm",
-  color: [107, 142, 35], //Olive Drab
-},
-OtherComm: {
-urls: "https://celestrak.org/NORAD/elements/gp.php?GROUP=other-comm&FORMAT=tle",
-size: 3,
-title: "Other Comms",
-color: [255, 218, 185], //Peach Puff
-},
-SatNOGS: {
-  urls: "https://celestrak.org/NORAD/elements/gp.php?GROUP=satnogs&FORMAT=tle",
-  size: 3,
-  title: "Sat NOGS",
-  color: [188, 143, 143], //Rosy Brown
-},
-Gorizont: {
-  urls: "https://celestrak.org/NORAD/elements/gp.php?GROUP=gorizont&FORMAT=tle",
-  size: 3,
-  title: "Gorizont",
-  color: [70, 130, 180], //Steel Blue
-},
-Raduga: {
-  urls: "https://celestrak.org/NORAD/elements/gp.php?GROUP=raduga&FORMAT=tle",
-  size: 3,
-  title: "Raduga",
-  color: [46, 139, 87], //Sea Green
-},
-Molniya: {
-  urls: "https://celestrak.org/NORAD/elements/gp.php?GROUP=molniya&FORMAT=tle",
-  size: 3,
-  title: "Molniya",
-  color: [240, 128, 128], //Light Coral
-},
-GNSS: {
-  urls: "https://celestrak.org/NORAD/elements/gp.php?GROUP=gnss&FORMAT=tle",
-  size: 3,
-  title: "GNSS",
-  color: [205, 133, 63], //Peru
-},
-GPSOperational: {
-  urls: "https://celestrak.org/NORAD/elements/gp.php?GROUP=gps-ops&FORMAT=tle",
-  size: 3,
-  title: "GPS Operational",
-  color: [119, 136, 153], //Light Slate Gray
-},
-GLONASSOperational: {
-  urls: "https://celestrak.org/NORAD/elements/gp.php?GROUP=glo-ops&FORMAT=tle",
-  size: 3,
-  title: "GLONASS Operational",
-  color: [60, 179, 113], //Medium Sea Green
-},
-SatelliteBasedAugmentationSystem: {
-  urls: "https://celestrak.org/NORAD/elements/gp.php?GROUP=sbas&FORMAT=tle",
-  size: 3,
-  title: "Satellite Based Augmentation System",
-  color: [244, 164, 96], //Sandy Brown
-},
-NavyNavigationSatelliteSystem: {
-  urls: "https://celestrak.org/NORAD/elements/gp.php?GROUP=nnss&FORMAT=tle",
-  size: 3,
-  title: "Navy Navigation Satellite System",
-  color: [0, 206, 209], //Dark Turquoise
-},
-RussianLEONavigation: {
-  urls: "https://celestrak.org/NORAD/elements/gp.php?GROUP=musson&FORMAT=tle",
-  size: 3,
-  title: "Russian LEO Navigation",
-  color: [219, 112, 147], //Pale Violet Red
-},
-SpaceAndEarthScience: {
-  urls: "https://celestrak.org/NORAD/elements/gp.php?GROUP=science&FORMAT=tle",
-  size: 3,
-  title: "Space & Earth Science",
-  color: [34, 139, 34], // Forest Green
-},
-Geodetic: {
-  urls: "https://celestrak.org/NORAD/elements/gp.php?GROUP=geodetic&FORMAT=tle",
-  size: 3,
-  title: "Geodetic",
-  color: [100, 149, 237], //Corn Flower Blue
-},
-Engineering: {
-  urls: "https://celestrak.org/NORAD/elements/gp.php?GROUP=engineering&FORMAT=tle",
-  size: 3,
-  title: "Engineering",
-  color: [160, 82, 45], //Sienna
-},
-Education: {
-  urls: "https://celestrak.org/NORAD/elements/gp.php?GROUP=education&FORMAT=tle",
-  size: 3, 
-  title: "Education",
-  color: [102, 205, 170], //Medium Aqua Marine
-},
-MiscellaneousMilitary: {
-  urls: "https://celestrak.org/NORAD/elements/gp.php?GROUP=military&FORMAT=tle",
-  size: 3,
-  title: "Miscellaneous Military",
-  color: [205, 92, 92], //Indian Red
-},
-RadarCalibration: {
-  urls: "https://celestrak.org/NORAD/elements/gp.php?GROUP=radar&FORMAT=tle",
-  size: 3,
-  title: "Radar Calibration",
-  color: [178, 34, 34], //Fire Brick
-},
-CubeSats: {
-  urls: "https://celestrak.org/NORAD/elements/gp.php?GROUP=cubesat&FORMAT=tle",
-  size: 3,
-  title: "Cube Sats",
-  color: [135, 206, 250], //Light Sky Blue
-},
-OtherSatellites:{
-  urls: "https://celestrak.org/NORAD/elements/gp.php?GROUP=other&FORMAT=tle",
-  size: 3,
-  title: "Other Satellites",
-  color: [0, 255, 127], //Spring Green
-},
-    
+    miscellaneousSatellites: {
+      MiscellaneousMilitary: {
+        url: "https://celestrak.org/NORAD/elements/gp.php?GROUP=military&FORMAT=tle",
+        size: 3,
+        title: "Miscellaneous Military",
+        color: [205, 92, 92], //Indian Red
+      },
+      RadarCalibration: {
+        url: "https://celestrak.org/NORAD/elements/gp.php?GROUP=radar&FORMAT=tle",
+        size: 3,
+        title: "Radar Calibration",
+        color: [178, 34, 34], //Fire Brick
+      },
+      CubeSats: {
+        url: "https://celestrak.org/NORAD/elements/gp.php?GROUP=cubesat&FORMAT=tle",
+        size: 3,
+        title: "Cube Sats",
+        color: [135, 206, 250], //Light Sky Blue
+      },
+      OtherSatellites: {
+        url: "https://celestrak.org/NORAD/elements/gp.php?GROUP=other&FORMAT=tle",
+        size: 3,
+        title: "Other Satellites",
+        color: [0, 255, 127], //Spring Green
+      },
+    },
   };
   const [isPopupVisible, setPopupVisible] = useState(false);
   const [selectedGroup, setSelectedGroup] = useState(Object.keys(urls)[0]);
@@ -406,11 +433,14 @@ OtherSatellites:{
   };
   //API Part
 
-  const fetchSatelliteData = async (group) => {
+  const fetchSatelliteData = async (category, group) => {
+    console.log("running fetch");
     try {
-      const response = await fetch(urls[group].url);
+      const url = urls[category][group].url;
+      const response = await fetch(urls[category][group].url);
       const textData = await response.text();
       const parsedData = parseTLEData(textData);
+
       setSatelliteData((prevData) => ({ ...prevData, [group]: parsedData }));
     } catch (error) {
       console.error(`Error fetching satellite data for ${group}:`, error);
@@ -432,11 +462,15 @@ OtherSatellites:{
 
   useEffect(() => {
     visibleGroups.forEach((group) => {
-      if (!satelliteData[group]) {
-        fetchSatelliteData(group);
-      }
+      // Loop through each category to check for the group
+      Object.keys(urls).forEach((category) => {
+        if (!satelliteData[group] && urls[category] && urls[category][group]) {
+          console.log(" urls[category][group]", urls[category][group]);
+          fetchSatelliteData(category, group);
+        }
+      });
     });
-  }, [visibleGroups]);
+  }, [visibleGroups, satelliteData]);
 
   const calculateSatellitePosition = (tleLine1, tleLine2) => {
     try {
@@ -514,12 +548,16 @@ OtherSatellites:{
   //       );
   //       return {
   //         position: [longitude, latitude, altitude],
-  //         color: urls[group].color,
+  //         color: urls[category][group].color,
   //       };
   //     });
   // converting satellite data into Deck.gl-compatible format
 
-  const isSatelliteWithinRadius = (satellitePosition, userLocation, radiusKm) => {
+  const isSatelliteWithinRadius = (
+    satellitePosition,
+    userLocation,
+    radiusKm
+  ) => {
     const [satLon, satLat] = satellitePosition;
     const { latitude, longitude } = userLocation;
     const distance = calculateDistance(latitude, longitude, satLat, satLon);
@@ -538,6 +576,7 @@ OtherSatellites:{
 
   const createLayers = () => {
     // Define the layers array
+    console.log("visibleGroups", visibleGroups, "satelliteData", satelliteData);
     const layers = visibleGroups.map((group) => {
       const data = (satelliteData[group] || [])
         .map((satellite) => {
@@ -552,16 +591,25 @@ OtherSatellites:{
           }
 
           if (userLocation) {
-            if (!isSatelliteWithinRadius(position, userLocation, 1000)) { // 1000 km radius
+            if (!isSatelliteWithinRadius(position, userLocation, 1000)) {
+              // 1000 km radius
               return null; // Skip satellites outside the radius
             }
           }
           const [longitude, latitude, altitude] = position;
+          let foundObj;
+          Object.keys(urls).forEach((categoryKey) => {
+            Object.keys(urls[categoryKey]).forEach((eachGroupKey) => {
+              if (eachGroupKey === group) {
+                foundObj = urls[categoryKey][eachGroupKey];
+              }
+            });
+          });
 
           return {
             position: [longitude, latitude, altitude],
-            size: urls[group].size || 1,
-            color: urls[group].color || [255, 255, 255], // Default to white if no color is defined
+            size: (foundObj && foundObj.size) || 1,
+            color: (foundObj && foundObj.color) || [255, 255, 255], // Default to white if no color is defined
             elevation: 1000,
           };
         })
@@ -573,7 +621,7 @@ OtherSatellites:{
         pickable: true,
         getPosition: (d) => d.position,
         getRadius: (d) => d.size,
-        pointSize: urls[group].size || 1,
+        pointSize: urls[categories[group]]?.[data[0]?.type]?.size || 1,
         getColor: (d) => d.color,
         getElevation: (d) => d.elevation,
         elevationScale: 1,
@@ -612,6 +660,7 @@ OtherSatellites:{
         setWatchList={setWatchList}
         visibleGroups={visibleGroups}
         setVisibleGroups={setVisibleGroups}
+        categories={categories}
       />
 
       <DeckGL
